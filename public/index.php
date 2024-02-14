@@ -8,7 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-if ($_ENV['ENVIRONMENT'] === 'DEVELOPPEMENT') $app->addErrorMiddleware(true, true, true);
+if ($_ENV['ENVIRONMENT'] === 'DEV') $app->addErrorMiddleware(true, true, true);
 
 try {
     $conx = new DatabaseConnector();
