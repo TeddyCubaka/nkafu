@@ -1,0 +1,4 @@
+# if you use git in your project, use this file ignore all your unnecessary files or folders
+
+/vendor
+.env
