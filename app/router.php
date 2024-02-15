@@ -174,14 +174,16 @@ class Router
                  * */
                 return $this->req_response($response, $payload);
             } catch (Exception $err) {
-                return [
+                $data = [
                     'code' => 500,
                     'message' => 'Une erreur s\'est produite',
                     'error' => [
                         'code' => $err->getCode(),
-                        'message' => $err->getMessage()
+                        'message' => $err->getMessage(),
+                        'trace' => $err->getTraceAsString()
                     ]
                 ];
+                return $this->req_response($response, $data);
             }
         });
 
