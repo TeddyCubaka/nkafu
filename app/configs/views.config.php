@@ -18,6 +18,14 @@ class ViewInterface
                     'message' => 'Method not allow'
                 ]
             ];
-        } else return $this->$method($request, $response, $args);
+        }
+        $response = $this->$method($request, $response, $args);
+        if (!is_array($response)) {
+            throw new \Exception('Your response must be an array');
+        }
+        if (array_key_exists('code', $response)) {
+            throw new \Exception('the key code is absent');
+        }
+        return $response;
     }
 }

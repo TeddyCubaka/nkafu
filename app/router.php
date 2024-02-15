@@ -74,6 +74,10 @@ class Router
                 ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
         });
 
+        $this->app->get('/', function (Request $request, Response $response, array $args) {
+            $url = __DIR__ . '/IHM/index.php';
+            return $response->withHeader('Location', $url)->withStatus(302);
+        });
         /**
          * Well, well. This route is the main route for our all application. By default it takes the api/v1 as the default base url for the app.
          * This mean the app url are look like this http://localhost:8080/api/v1/module.
@@ -184,7 +188,7 @@ class Router
         /**
          * This middleware handle all the not founded page or route.
          */
-        $this->app->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], '/[{routes:.+}[/]]', function (Request $request, Response $response, array $args) {
+        $this->app->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], '/{routes:.+}[/]', function (Request $request, Response $response, array $args) {
             $data = [
                 'message' => 'page non trouvé',
                 'code' => 404,
