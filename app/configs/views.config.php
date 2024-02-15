@@ -23,7 +23,7 @@ class ViewInterface
         if (!is_array($response)) {
             throw new \Exception('Your response must be an array');
         }
-        if (array_key_exists('code', $response)) {
+        if (!array_key_exists('code', $response)) {
             throw new \Exception('the key code is absent');
         }
         return $response;
