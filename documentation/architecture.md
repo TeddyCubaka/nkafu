@@ -27,11 +27,11 @@ There we are. This folder contain all your project logic. The router, database c
 
 His archicture look like this :
 
-+ app/
-    + confing/
-    + controllers/
-    + dao/
-    + models/
-    + modules/
-    + database.php
-    + router.php
+    + app/
+        + confing/
+        + controllers/
+        + dao/
+        + models/
+        + modules/
+        + database.php
+        + router.php
