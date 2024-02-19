@@ -48,15 +48,15 @@ class ModelInterface
 
             $propertyValue = $this->$methodName();
 
-            if ($propertyValue !== null) {
-                $propertyName = self::$model_nomenclature == 'SNAKE' ? (substr($methodName, 4)) : lcfirst(substr($methodName, 3));
+            // if ($propertyValue !== null) {
+            $propertyName = self::$model_nomenclature == 'SNAKE' ? (substr($methodName, 4)) : lcfirst(substr($methodName, 3));
 
-                if (is_object($propertyValue)) {
-                    $data[$propertyName] = $propertyValue->getID();
-                } else {
-                    $data[$propertyName] = $propertyValue;
-                }
+            if (is_object($propertyValue)) {
+                $data[$propertyName] = $propertyValue->getID();
+            } else {
+                $data[$propertyName] = $propertyValue;
             }
+            // }
         }
 
         return $data;

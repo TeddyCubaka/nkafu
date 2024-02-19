@@ -5,8 +5,12 @@
  * */
 class TestView extends ViewInterface
 {
-    public function __construct()
+    private $db;
+    private $user_ws;
+    public function __construct($db)
     {
+        $this->db = $db;
+        $this->user_ws = new Sys_user_controller($db);
         /**
          * declare here all your initial state of your class or object.
          */
@@ -18,7 +22,8 @@ class TestView extends ViewInterface
          * Note : the name of all method of the must conrespond to the http method. Namely, GET, PUT, POST, PATCH.
          * The method response must be an array.
          */
-        return ['code' => 200, 'message' => "Tout vas bien.", "args" => $args];
+        $params = $request->getQueryParams();
+        return ['code' => 200, 'message' => "Tout vas bien.", "user" => $this->user_ws->find_many($params)];
     }
 }
 

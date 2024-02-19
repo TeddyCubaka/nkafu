@@ -17,6 +17,24 @@ class Router
         $this->db = $db;
     }
 
+    /**
+     * Simple method to format erreur data response
+     * */
+    public function get_error_data(\Exception $err)
+    {
+        $error = [
+            'code' => $err->getCode(),
+            'message' => $err->getMessage(),
+        ];
+
+        if ($_ENV['INFO_ENVIRONMENT'] == 'DEV') {
+            $error['file'] = $err->getFile();
+            $error['line'] = $err->getLine();
+            $error['trace'] = $err->getTrace();
+        }
+
+        return $error;
+    }
     public static function autoload($module): array
     {
         /*
@@ -177,11 +195,7 @@ class Router
                 $data = [
                     'code' => 500,
                     'message' => 'Une erreur s\'est produite',
-                    'error' => [
-                        'code' => $err->getCode(),
-                        'message' => $err->getMessage(),
-                        'trace' => $err->getTraceAsString()
-                    ]
+                    'error' => $this->get_error_data($err)
                 ];
                 return $this->req_response($response, $data);
             }
