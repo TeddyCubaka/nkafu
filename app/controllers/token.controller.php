@@ -105,10 +105,6 @@ class TokenControllers
     {
         try {
             $decodedToken = $this->decode_token($token);
-            // if ($decodedToken === "Expired token") {
-            //     $this->state = 'expired';
-            //     return false;
-            // }
 
             if ($decodedToken === null) {
                 $this->state = 'invalid';
@@ -148,7 +144,7 @@ class TokenControllers
         $token_verified = $this->token_verify($token);
         if (!$token_verified) return $token_verified;
 
-        if ($this->decoded_token->sub !== 'AUTH') return false;
+        if ($this->decoded_token->sub !== $_ENV['JWT_ACCESS_SUB_TAG']) return false;
 
         return $token_verified;
     }
@@ -161,5 +157,26 @@ class TokenControllers
     public function get_state()
     {
         return $this->state;
+    }
+
+    public function refresh_token_verify($request)
+    {
+        $token = $this->get_token_from_headers($request);
+
+        if ($token === null) {
+            $this->state = 'non-existent';
+            $this->error = [
+                'code' => 0,
+                'message' => 'unexistant token'
+            ];
+            return false;
+        }
+
+        $token_verified = $this->token_verify($token);
+        if (!$token_verified) return $token_verified;
+
+        if ($this->decoded_token->sub !== $_ENV['JWT_REFRESH_SUB_TAG']) return false;
+
+        return $token_verified;
     }
 }
