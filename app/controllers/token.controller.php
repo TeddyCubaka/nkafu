@@ -16,30 +16,34 @@ class TokenControllers
 
     public function generate_token($user)
     {
-        $key = $_ENV['JWT_SERVER_SECRET_KEY'];
-        $payload_access = [
-            'iss' => $user['login'],
-            'uuid' => key_exists('id', $user) ?  $user['id'] : $user['user_id'],
-            'type' => $user['statut'],
-            'iat' => time(),
-            'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
-            'sub' => 'AUTH'
-        ];
-        $payload_refresh = [
-            'iss' => $user['login'],
-            'uuid' => key_exists('id', $user) ?  $user['id'] : $user['user_id'],
-            'type' => $user['statut'],
-            'iat' => time(),
-            'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
-            'sub' => 'REFRESH'
-        ];
-        $access = JWT::encode($payload_access, $key, $_ENV['JWT_SERVER_ALGORITHME']);
-        $refresh = JWT::encode($payload_refresh, $key, $_ENV['JWT_SERVER_ALGORITHME']);
+        try {
+            $key = $_ENV['JWT_SERVER_SECRET_KEY'];
+            $payload_access = [
+                'iss' => $user['login'],
+                'uuid' => key_exists('id', $user) ?  $user['id'] : $user['user_id'],
+                'type' => $user['statut'],
+                'iat' => time(),
+                'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
+                'sub' => 'AUTH'
+            ];
+            $payload_refresh = [
+                'iss' => $user['login'],
+                'uuid' => key_exists('id', $user) ?  $user['id'] : $user['user_id'],
+                'type' => $user['statut'],
+                'iat' => time(),
+                'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
+                'sub' => 'REFRESH'
+            ];
+            $access = JWT::encode($payload_access, $key, $_ENV['JWT_SERVER_ALGORITHME']);
+            $refresh = JWT::encode($payload_refresh, $key, $_ENV['JWT_SERVER_ALGORITHME']);
 
-        return [
-            "access" => $access,
-            "refresh" => $refresh
-        ];
+            return [
+                "access" => $access,
+                "refresh" => $refresh
+            ];
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
     }
 
     public function setDecoded_token($token)
@@ -87,7 +91,7 @@ class TokenControllers
         }
     }
 
-    private function get_token_from_headers($request)
+    public function get_token_from_headers($request)
     {
         $headers = $request->getHeaders();
         if (isset($headers['Authorization'][0])) {
@@ -103,6 +107,14 @@ class TokenControllers
 
     public function token_verify($token)
     {
+        if ($token === null) {
+            $this->state = 'non-existent';
+            $this->error = [
+                'code' => 0,
+                'message' => 'unexistant token'
+            ];
+            return false;
+        }
         try {
             $decodedToken = $this->decode_token($token);
 
@@ -128,19 +140,8 @@ class TokenControllers
         }
     }
 
-    public function access_token_verify($request)
+    public function access_token_verify($token)
     {
-        $token = $this->get_token_from_headers($request);
-
-        if ($token === null) {
-            $this->state = 'non-existent';
-            $this->error = [
-                'code' => 0,
-                'message' => 'unexistant token'
-            ];
-            return false;
-        }
-
         $token_verified = $this->token_verify($token);
         if (!$token_verified) return $token_verified;
 
@@ -159,24 +160,24 @@ class TokenControllers
         return $this->state;
     }
 
-    public function refresh_token_verify($request)
+    public function refresh_token_verify($token)
     {
-        $token = $this->get_token_from_headers($request);
-
-        if ($token === null) {
-            $this->state = 'non-existent';
-            $this->error = [
-                'code' => 0,
-                'message' => 'unexistant token'
-            ];
-            return false;
-        }
-
         $token_verified = $this->token_verify($token);
         if (!$token_verified) return $token_verified;
 
         if ($this->decoded_token->sub !== $_ENV['JWT_REFRESH_SUB_TAG']) return false;
 
         return $token_verified;
+    }
+
+    public function verify_token_type($token)
+    {
+        $token_verified = $this->token_verify($token);
+        if (!$token_verified) return $token_verified;
+
+        if ($this->decoded_token->sub == $_ENV['JWT_REFRESH_SUB_TAG']) $data['type'] = 'refresh';
+        else $data['type'] = 'access';
+
+        return $data;
     }
 }

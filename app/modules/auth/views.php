@@ -11,13 +11,14 @@ class AuthView extends ViewInterface
 
     public function get($request, $response, $args)
     {
-        $token_veficator  = $this->token_ws->access_token_verify($request);
+        $token = $this->token_ws->get_token_from_headers($request);
+        $token_veficator  = $this->token_ws->access_token_verify($token);
         $state = $this->token_ws->get_state();
 
         if (!$token_veficator) {
             $error = $this->token_ws->get_error();
             return [
-                'code' => 200,
+                'code' => 401,
                 'message' => "le token n'est pas valide",
                 "data" => [
                     "state" => $state,
@@ -55,13 +56,14 @@ class RefreshTokenView extends ViewInterface
 
     public function post($request, $response, $args)
     {
-        $token_veficator  = $this->token_ws->refresh_token_verify($request);
+        $token = $this->token_ws->get_token_from_headers($request);
+        $token_veficator  = $this->token_ws->refresh_token_verify($token);
         $state = $this->token_ws->get_state();
 
         if (!$token_veficator) {
             $error = $this->token_ws->get_error();
             return [
-                'code' => 200,
+                'code' => 401,
                 'message' => "le token n'est pas valide",
                 "data" => [
                     "state" => $state,
@@ -81,5 +83,41 @@ class RefreshTokenView extends ViewInterface
                 'token' =>  $token
             ];
         }
+    }
+}
+
+class VerifyTokenView extends ViewInterface
+{
+    private $db;
+    private $token_ws;
+    public function __construct($db)
+    {
+        $this->db = $db;
+        $this->token_ws = new TokenControllers();
+    }
+
+    public function get($request, $response, $args)
+    {
+        $token = $this->token_ws->get_token_from_headers($request);
+        $token_veficator  = $this->token_ws->verify_token_type($token);
+        $state = $this->token_ws->get_state();
+
+        if (!$token_veficator) {
+            $error = $this->token_ws->get_error();
+            return [
+                'code' => 401,
+                'message' => "le token n'est pas valide",
+                "data" => [
+                    "state" => $state,
+                    "error" => $_ENV['ENVIRONMENT'] == 'DEV' ? $error : null
+                ]
+            ];
+        }
+
+        if ($state == "decoded") return [
+            'code' => 200,
+            'message' => "le token est encore valide",
+            "data" => $token_veficator
+        ];
     }
 }
