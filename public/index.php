@@ -11,9 +11,8 @@ require '../vendor/autoload.php';
 $app = AppFactory::create();
 
 // Add error middleware if the environment is set to DEV
-if ($_ENV['ENVIRONMENT'] === 'DEV') {
-    $app->addErrorMiddleware(true, true, true);
-}
+if ($_ENV['ENVIRONMENT'] === 'DEV') $app->addErrorMiddleware(true, true, true);
+else $app->addErrorMiddleware(false, false, false);
 
 try {
     // Create a new instance of the DatabaseConnector class
