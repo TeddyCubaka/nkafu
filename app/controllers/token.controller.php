@@ -14,13 +14,44 @@ class TokenControllers
     private $state;
     private $decoded_token;
 
-    public function generate_token($user)
+    private function find_user($user_data, $db)
+    {
+        $stmt = $db->prepare('SELECT * FROM sys_user WHERE login = ?');
+        $stmt->execute([$user_data['login']]);
+
+        $user = $stmt->fetch();
+
+        if (!$user) return null;
+
+        if (!password_verify($user_data['pwd'], $user['pwd'])) return null;
+
+        if (isset($user['is_active'])) {
+            if ((int) $user['is_active'] !== 1) return 'UNACTIVATE';
+            return $user;
+        }
+    }
+
+    public function encode_jwt_payload($jwt_playload)
+    {
+        $secret_key = $_ENV['JWT_SERVER_SECRET_KEY'];
+        return JWT::encode($jwt_playload, $secret_key, $_ENV['JWT_SERVER_ALGORITHME']);
+    }
+
+    public function generate_token($user_data, $db)
     {
         try {
-            $key = $_ENV['JWT_SERVER_SECRET_KEY'];
+            $user = $this->find_user($user_data, $db);
+            if (!$user) return [
+                'code' => 404,
+                'message' => 'user not found'
+            ];
+            if ($user == 'UNACTIVATE') return [
+                'code' => 404,
+                'message' => 'user not activate'
+            ];
             $payload_access = [
                 'iss' => $user['login'],
-                'uuid' => key_exists('id', $user) ?  $user['id'] : $user['user_id'],
+                'uuid' =>  $user['id'],
                 'type' => $user['statut'],
                 'iat' => time(),
                 'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
@@ -34,12 +65,17 @@ class TokenControllers
                 'exp' => time() + $_ENV['JWT_SERVER_DURATION'],
                 'sub' => 'REFRESH'
             ];
-            $access = JWT::encode($payload_access, $key, $_ENV['JWT_SERVER_ALGORITHME']);
-            $refresh = JWT::encode($payload_refresh, $key, $_ENV['JWT_SERVER_ALGORITHME']);
+
+            $access = $this->encode_jwt_payload($payload_access);
+            $refresh = $this->encode_jwt_payload($payload_refresh);
 
             return [
-                "access" => $access,
-                "refresh" => $refresh
+                'code' => 200,
+                'message' => 'le token est prêt',
+                'token' => [
+                    "access" => $access,
+                    "refresh" => $refresh
+                ]
             ];
         } catch (Exception $e) {
             throw new Exception($e->getMessage());

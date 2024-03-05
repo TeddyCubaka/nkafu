@@ -7,7 +7,7 @@ This file include all of files which are in these folder which are listed in the
 */
 
 // pay attention of order of this list. consider that this is the order of importation
-$paths = ['config', 'controller', 'model', 'serializer'];
+$paths = ['util', 'config', 'controller', 'model', 'serializer'];
 
 
 foreach ($paths as $path) {

@@ -23,7 +23,7 @@ class TestView extends ViewInterface
          * The method response must be an array.
          */
         $params = $request->getQueryParams();
-        return ['code' => 200, 'message' => "Tout vas bien.", "user" => $this->user_ws->find_many($params)];
+        return ['code' => 200, 'message' => "Tout vas bien.", "data" => $params["data"]];
     }
 }
 

@@ -3,10 +3,12 @@ class AuthView extends ViewInterface
 {
     private $db;
     private $token_ws;
+    private $app_validator;
     public function __construct($db)
     {
         $this->db = $db;
         $this->token_ws = new TokenControllers();
+        $this->app_validator = new Validator();
     }
 
     public function get($request, $response, $args)
@@ -35,12 +37,23 @@ class AuthView extends ViewInterface
 
     public function post($request, $response, $args)
     {
-        $token  = $this->token_ws->generate_token(['login' => 808080800, 'user_id' => '345']);
-        return [
-            'code' => 200,
-            'message' => 'le token est prêt',
-            'token' =>  $token
-        ];
+        $request_body = $request->getParsedBody();
+        if (!$this->app_validator->is_valid_request_body($request_body)) {
+            return $this->app_validator->get_error();
+        }
+
+        if (!(key_exists('login', $request_body) || key_exists('pwd', $request_body))) {
+            return [
+                'code' => 400,
+                'message' => 'certain clé sont manquantes',
+                'error' => [
+                    'code' => 400,
+                    'message' =>  "Missing required key in request body"
+                ]
+            ];
+        }
+        $token  = $this->token_ws->generate_token($request_body, $this->db);
+        return $token;
     }
 }
 
@@ -76,7 +89,7 @@ class RefreshTokenView extends ViewInterface
 
             $data = ['login' => $decoded_token->iss, 'user_id' => $decoded_token->uuid, 'statut' => $decoded_token->type];
 
-            $token  = $this->token_ws->generate_token($data);
+            $token  = $this->token_ws->generate_token($data, $this->db);
             return [
                 'code' => 200,
                 'message' => 'le token a été reproduit',

@@ -20,14 +20,14 @@ class Router
     /**
      * Simple method to format erreur data response
      * */
-    public function get_error_data(\Exception $err)
+    public function get_error_data($err)
     {
         $error = [
             'code' => $err->getCode(),
             'message' => $err->getMessage(),
         ];
 
-        if ($_ENV['INFO_ENVIRONMENT'] == 'DEV') {
+        if ($_ENV['ENVIRONMENT'] == 'DEV') {
             $error['file'] = $err->getFile();
             $error['line'] = $err->getLine();
             $error['trace'] = $err->getTrace();
@@ -192,6 +192,13 @@ class Router
                  * */
                 return $this->req_response($response, $payload);
             } catch (Exception $err) {
+                $data = [
+                    'code' => 500,
+                    'message' => 'Une erreur s\'est produite',
+                    'error' => $this->get_error_data($err)
+                ];
+                return $this->req_response($response, $data);
+            } catch (TypeError $err) {
                 $data = [
                     'code' => 500,
                     'message' => 'Une erreur s\'est produite',
