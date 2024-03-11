@@ -25,6 +25,15 @@ class TestView extends ViewInterface
         $params = $request->getQueryParams();
         return ['code' => 200, 'message' => "Tout vas bien.", "data" => $params["data"]];
     }
+
+    public function post($request, $response, $args)
+    {
+        return [
+            'code' => 200,
+            'message' => "Tout vas bien.",
+            "data" => ['method' => 'post']
+        ];
+    }
 }
 
 class AlphaView extends ViewInterface
